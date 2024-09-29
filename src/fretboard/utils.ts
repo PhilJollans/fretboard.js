@@ -151,8 +151,6 @@ export function getDimensions({
 type GetPositionParams = {
   event: MouseEvent;
   stringsGroup: Selection<BaseType, unknown, HTMLElement, unknown>;
-  topPadding: number;
-  leftPadding: number;
   nutWidth: number;
   strings: number[];
   frets: number[];
@@ -162,34 +160,30 @@ type GetPositionParams = {
 export const getPositionFromMouseCoords = ({
   event,
   stringsGroup,
-  topPadding,
-  leftPadding,
   nutWidth,
   strings,
   frets,
   dots
-}: GetPositionParams): Position => {
-  const {
-    width: stringsGroupWidth,
-    height: stringsGroupHeight
-  } = (stringsGroup.node() as HTMLElement).getBoundingClientRect();
-  const bounds = (event.target as HTMLElement).getBoundingClientRect();
+}: GetPositionParams): Position | undefined => {
+
+  const bounds = (stringsGroup.node() as HTMLElement).getBoundingClientRect();
   const x = event.clientX - bounds.left;
-  const y = event.clientY - bounds.top - topPadding ;
+  const y = event.clientY - bounds.top;
 
-  let foundString = 0;
+  // Get the separation of the strings
+  const stringDistance = bounds.height / (strings.length - 1) ;
 
-  const halfStringDistance = stringsGroupHeight / ( 2 * (strings.length - 1) ) ;
+  // Divide Y by the separation and round to the nearest integer.
+  const foundString = Math.round ( y / stringDistance ) ;
 
-  for (let i = 0; i < strings.length; i++) {
-    if (y < halfStringDistance *  ( 1 + 2*i ) ) {
-      foundString = i;
-      break;
-    }
-  }
+  // Check for invalid string numbers after rounding
+  if ( foundString < 0 )
+    return undefined ;
+  else if ( foundString >= strings.length )
+    return undefined ;
 
   let foundFret = -1;
-  const percentX = (Math.max(0, x - leftPadding) / stringsGroupWidth) * 100;
+  const percentX = (Math.max(0, x) / bounds.width) * 100;
 
   for (let i = 0; i < frets.length; i++) {
     if (percentX < frets[i]) {
@@ -199,7 +193,7 @@ export const getPositionFromMouseCoords = ({
     foundFret = i;
   }
 
-  if (x < leftPadding + nutWidth) {
+  if (x < nutWidth) {
     foundFret = 0;
   }
 
@@ -210,18 +204,12 @@ export const getPositionFromMouseCoords = ({
   }
 }
 
-export function createHoverDiv({
-  bottomPadding,
-  showFretNumbers,
-  fretNumbersHeight
-}: Options): HTMLDivElement {
+export function createHoverDiv(): HTMLDivElement {
   const hoverDiv = document.createElement('div');
-  const bottom = bottomPadding
-    + (showFretNumbers ? fretNumbersHeight : 0);
   hoverDiv.className = 'hoverDiv';
   hoverDiv.style.position = 'absolute';
   hoverDiv.style.top = '0';
-  hoverDiv.style.bottom = `${bottom}px`;
+  hoverDiv.style.bottom = '0';
   hoverDiv.style.left = '0';
   hoverDiv.style.right = '0';
   return hoverDiv;

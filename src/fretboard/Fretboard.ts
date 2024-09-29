@@ -561,7 +561,7 @@ export class Fretboard {
     const stringsGroup = svg.select('.strings');
 
     if (!hoverDiv) {
-      this.hoverDiv = createHoverDiv(options);
+      this.hoverDiv = createHoverDiv();
       (svg.node() as HTMLElement).parentNode.appendChild(this.hoverDiv);
     }
 
@@ -579,8 +579,11 @@ export class Fretboard {
           dots,
           ...options
         });
-        const { note, chroma } = system.getNoteAtPosition(position);
-        handler({ ...position, note, chroma }, event);
+        if ( position !== undefined )
+        {
+          const { note, chroma } = system.getNoteAtPosition(position);
+          handler({ ...position, note, chroma }, event);
+        }
       });
 
     this.hoverDiv.addEventListener(eventName, this.handlers[eventName]);
