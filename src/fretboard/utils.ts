@@ -151,6 +151,7 @@ export function getDimensions({
 type GetPositionParams = {
   event: MouseEvent;
   stringsGroup: Selection<BaseType, unknown, HTMLElement, unknown>;
+  topPadding: number;
   leftPadding: number;
   nutWidth: number;
   strings: number[];
@@ -161,6 +162,7 @@ type GetPositionParams = {
 export const getPositionFromMouseCoords = ({
   event,
   stringsGroup,
+  topPadding,
   leftPadding,
   nutWidth,
   strings,
@@ -173,14 +175,14 @@ export const getPositionFromMouseCoords = ({
   } = (stringsGroup.node() as HTMLElement).getBoundingClientRect();
   const bounds = (event.target as HTMLElement).getBoundingClientRect();
   const x = event.clientX - bounds.left;
-  const y = event.clientY - bounds.top;
+  const y = event.clientY - bounds.top - topPadding ;
 
   let foundString = 0;
 
-  const stringDistance = stringsGroupHeight / (strings.length - 1);
+  const halfStringDistance = stringsGroupHeight / ( 2 * (strings.length - 1) ) ;
 
   for (let i = 0; i < strings.length; i++) {
-    if (y < stringDistance * (i + 1)) {
+    if (y < halfStringDistance *  ( 1 + 2*i ) ) {
       foundString = i;
       break;
     }
