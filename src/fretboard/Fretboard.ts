@@ -385,7 +385,7 @@ export class Fretboard {
     text?: ValueFn<BaseType, unknown, string>;
     fontSize?: number;
     fontFill?: string;
-    [key: string]: string | number | Function | Rec;
+    [key: string]: string | number | Function | Rec | undefined;
   }): Fretboard {
     const { wrapper } = this;
     const { dotTextSize } = this.options;

@@ -40,7 +40,8 @@
         ]
     },
     "devDependencies": {
-        "@rollup/plugin-node-resolve": "^11.0.1",
+        "@rollup/plugin-commonjs": "^28.0.0",
+        "@rollup/plugin-node-resolve": "^15.3.0",
         "@tonaljs/chord": "^4.5.1",
         "@types/d3-selection": "^1.4.1",
         "@types/throttle-debounce": "^2.1.0",
