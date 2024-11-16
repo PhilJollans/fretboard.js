@@ -1,7 +1,7 @@
 {
-    "name": "@moonwave99/fretboard.js",
-    "version": "0.2.12",
-    "description": "Fretboard diagram generator",
+    "name": "@philjollans/fretboard.js",
+    "version": "1.0.0",
+    "description": "Fork of Fretboard diagram generator https://github.com/moonwave99/fretboard.js at version 0.2.12",
     "homepage": "https://moonwave99.github.io/fretboard.js/",
     "main": "dist/fretboard.cjs.js",
     "module": "dist/fretboard.esm.js",
@@ -30,9 +30,20 @@
     ],
     "repository": {
         "type": "git",
-        "url": "https://github.com/moonwave99/fretboard.js"
+        "url": "git+https://github.com/PhilJollans/fretboard.js.git"
     },
-    "author": "Diego Caponera <hello@diegocaponera.com>",
+    "author": {
+        "name": "Phil Jollans",
+        "email": "phil@jollans.com",
+        "url": "https://github.com/PhilJollans"
+    },
+    "contributors": [
+        {
+            "name": "Diego Caponera",
+            "email": "hello@diegocaponera.com",
+            "url": "https://github.com/moonwave99"
+        }
+    ],
     "license": "ISC",
     "ava": {
         "require": [
