@@ -1,6 +1,6 @@
 {
     "name": "@philjollans/fretboard.js",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Fork of Fretboard diagram generator https://github.com/moonwave99/fretboard.js at version 0.2.12",
     "homepage": "https://moonwave99.github.io/fretboard.js/",
     "main": "dist/fretboard.cjs.js",

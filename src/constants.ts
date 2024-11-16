@@ -12,7 +12,8 @@ export const DEFAULT_COLORS = {
     dotText: '#111',
     barres: '#666',
     highlightStroke: 'transparent',
-    highlightFill: 'dodgerblue'
+    highlightFill: 'dodgerblue',
+    markerDotColor: 'lightgrey'
 };
 
 export const DEFAULT_DIMENSIONS = {

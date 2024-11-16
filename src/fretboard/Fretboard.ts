@@ -92,6 +92,8 @@ export const defaultOptions = {
   dotText: (): string => '',
   disabledOpacity: 0.9,
   showFretNumbers: true,
+  showFretMarkers: true,
+  fretMarkerColor: DEFAULT_COLORS.markerDotColor,
   fretNumbersHeight: 2 * DEFAULT_DIMENSIONS.unit,
   fretNumbersMargin: DEFAULT_DIMENSIONS.unit,
   fretNumbersColor: DEFAULT_COLORS.line,
@@ -139,6 +141,8 @@ export type Options = {
   dotText: ValueFn<BaseType, unknown, string>;
   disabledOpacity: number;
   showFretNumbers: boolean;
+  showFretMarkers: boolean;
+  fretMarkerColor: string;
   fretNumbersHeight: number;
   fretNumbersMargin: number;
   fretNumbersColor: string;
@@ -242,6 +246,8 @@ export class Fretboard {
   strings: number[];
   frets: number[];
   positions: Point[][];
+  markers: number[];
+  doubleDotMarker: number | undefined ;
   svg: Selection<BaseType, unknown, HTMLElement, unknown>;
   wrapper: Selection<BaseType, unknown, HTMLElement, unknown>;
   private options: Options;
@@ -269,6 +275,9 @@ export class Fretboard {
     this.strings = generateStrings({ stringCount, height, stringWidth });
     this.frets = generateFrets({ fretCount, scaleFrets });
     const { totalWidth, totalHeight } = getDimensions(this.options);
+
+    // This is breaking the programming style somewhat.
+    this.getMarkers() ;
 
     this.system = new FretboardSystem({
       fretCount,
@@ -385,7 +394,7 @@ export class Fretboard {
     text?: ValueFn<BaseType, unknown, string>;
     fontSize?: number;
     fontFill?: string;
-    [key: string]: string | number | Function | Rec | undefined;
+    [key: string]: string | number | Function | Rec | undefined ;
   }): Fretboard {
     const { wrapper } = this;
     const { dotTextSize } = this.options;
@@ -730,6 +739,46 @@ export class Fretboard {
         }
       });
 
+    if (this.options.showFretMarkers)
+    {
+      const r = 0.35 * height / ( this.options.stringCount - 1 ) ;
+
+      // Add single dots (3rd, 5th, 7th, 9th frets)
+      const singleDotGroup = wrapper
+        .append('g')
+        .attr('class', 'single-dot-markers');
+
+      // Single dots
+      singleDotGroup
+        .selectAll('circle')
+        .data(this.markers)
+        .enter()
+        .append('circle')
+        .attr('cx', d => `${d}%`)
+        .attr('cy', height / 2)
+        .attr('r', r)
+        .attr('fill', this.options.fretMarkerColor);
+
+      // Double dots (12th fret)
+      if ( this.doubleDotMarker )
+      {
+        // Add single dots (3rd, 5th, 7th, 9th frets)
+        const doubleDotGroup = wrapper
+          .append('g')
+          .attr('class', 'double-dot-markers');
+
+        doubleDotGroup
+          .selectAll('.circle')
+          .data([0.30,0.70])
+          .enter()
+          .append('circle')
+          .attr('cx', `${this.doubleDotMarker}%`)
+          .attr('cy', d => d * height)
+          .attr('r', r)
+          .attr('fill', this.options.fretMarkerColor);
+      }
+    }
+
     if (showFretNumbers) {
       const fretNumbersGroup = wrapper
         .append('g')
@@ -759,5 +808,30 @@ export class Fretboard {
     return crop
       ? Math.max(0, Math.min(...dots.map(({ fret }) => fret)) - 1 - fretLeftPadding)
       : 0;
+  }
+
+  private getMarkers(): void
+  {
+    this.markers = [] ;
+    const markerFrets = [3,5,7,9,15,17,19,21] ;
+
+    for ( const i of markerFrets )
+    {
+      // Quit when we hit the fret count
+      if ( i > this.options.fretCount )
+        break ;
+
+      // The marker position is the middle point between the frets
+      this.markers.push ( ( this.frets[i-1] + this.frets[i] ) / 2  ) ;
+    }
+
+    if ( this.options.fretCount >= 12 )
+    {
+      this.doubleDotMarker = ( this.frets[11] + this.frets[12] ) / 2 ;
+    }
+    else
+    {
+      this.doubleDotMarker = undefined ;
+    }
   }
 }
