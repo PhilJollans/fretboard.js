@@ -49,12 +49,19 @@ export type Position = {
   chroma?: number;
 } & Record<string, string | number | boolean | Array<string | number>>;
 
-type MouseEventNames = keyof Pick<
+// type MouseEventNames = keyof Pick<
+//   HTMLElementEventMap,
+//   ({ [P in keyof HTMLElementEventMap]: HTMLElementEventMap[P] extends MouseEvent ? P : never })[keyof HTMLElementEventMap]
+// >;
+
+type MouseOrTouchEventNames = keyof Pick<
   HTMLElementEventMap,
-  ({ [P in keyof HTMLElementEventMap]: HTMLElementEventMap[P] extends MouseEvent ? P : never })[keyof HTMLElementEventMap]
+  ({ [P in keyof HTMLElementEventMap]:
+      HTMLElementEventMap[P] extends MouseEvent | TouchEvent ? P : never
+  })[keyof HTMLElementEventMap]
 >;
 
-type FretboardHandler = (position: Position, event: MouseEvent) => void;
+type FretboardHandler = (position: Position, event: MouseEvent | TouchEvent) => void;
 
 export type Barre = {
   fret: number;
@@ -253,9 +260,15 @@ export class Fretboard {
   private options: Options;
   private baseRendered: boolean;
   private hoverDiv: HTMLDivElement;
-  private handlers: Partial<Record<MouseEventNames, (event: MouseEvent) => void>> = {};
+  private handlers: Partial<Record<MouseOrTouchEventNames, (event: MouseEvent | TouchEvent) => void>> = {};
   private system: FretboardSystem;
   private dots: Position[] = [];
+
+  // When handling touch events, the TouchEnd event does not provide a position.
+  // I think the safest way to handle this is reuse the position from the previous
+  // event, most likely a TouchStart event.
+  private savedPosition: Position | undefined ;
+
   constructor(options = {}) {
     this.options = Object.assign({}, defaultOptions, options);
     validateOptions(this.options);
@@ -557,7 +570,7 @@ export class Fretboard {
     return this;
   }
 
-  on(eventName: MouseEventNames, handler: FretboardHandler): Fretboard {
+  on(eventName: MouseOrTouchEventNames, handler: FretboardHandler): Fretboard {
     const {
       svg,
       options,
@@ -579,8 +592,8 @@ export class Fretboard {
     }
     this.handlers[eventName] = throttle(
       THROTTLE_INTERVAL,
-      (event: MouseEvent) => {
-        const position = getPositionFromMouseCoords({
+      (event: MouseEvent | TouchEvent) => {
+        let position = getPositionFromMouseCoords({
           event,
           stringsGroup,
           strings,
@@ -588,6 +601,18 @@ export class Fretboard {
           dots,
           ...options
         });
+
+        // Special handling for the TouchEnd event (and others?) which does not provide a position.
+        // Reuse the most recent position, which would most likely be from the TouchStart event.
+        if ( position === undefined )
+        {
+          position = this.savedPosition ;
+        }
+        else
+        {
+          this.savedPosition = position ;
+        }
+
         if ( position !== undefined )
         {
           const { note, chroma } = system.getNoteAtPosition(position);

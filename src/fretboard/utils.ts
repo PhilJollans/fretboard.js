@@ -1,5 +1,5 @@
 import { paramCase } from 'change-case';
-import { Selection, BaseType } from 'd3-selection';
+import { Selection, BaseType, touches } from 'd3-selection';
 import { Position, Options } from './Fretboard';
 
 export function getStringThickness({
@@ -149,7 +149,7 @@ export function getDimensions({
 }
 
 type GetPositionParams = {
-  event: MouseEvent;
+  event: MouseEvent | TouchEvent ;
   stringsGroup: Selection<BaseType, unknown, HTMLElement, unknown>;
   nutWidth: number;
   strings: number[];
@@ -166,9 +166,36 @@ export const getPositionFromMouseCoords = ({
   dots
 }: GetPositionParams): Position | undefined => {
 
+  // Determine the event type at runtime and extract coordinates
+  let clientX: number ;
+  let clientY: number ;
+
+  if ( event instanceof TouchEvent)
+  {
+    if ( event.touches.length > 0 )
+    {
+      clientX = event.touches[0].clientX;
+      clientY = event.touches[0].clientY;
+    }
+    else
+    {
+      // This is a realistic case for the touch end event
+      return undefined ;
+    }
+  }
+  else if ( event instanceof MouseEvent )
+  {
+    clientX = event.clientX;
+    clientY = event.clientY;
+  }
+  else
+  {
+    return undefined ;
+  }
+
   const bounds = (stringsGroup.node() as HTMLElement).getBoundingClientRect();
-  const x = event.clientX - bounds.left;
-  const y = event.clientY - bounds.top;
+  const x = clientX - bounds.left;
+  const y = clientY - bounds.top;
 
   // Get the separation of the strings
   const stringDistance = bounds.height / (strings.length - 1) ;
