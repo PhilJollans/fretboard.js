@@ -15,6 +15,9 @@ export function parseChord(chord: string): {
       mutedStrings.push(string + 1);
       return;
     }
+    if (fret === 'n') {
+      fret = "0" ;
+    }
     positions.push({
       fret: +fret,
       string: string + 1
