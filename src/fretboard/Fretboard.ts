@@ -33,6 +33,7 @@ import {
 
 import { FretboardSystem } from '../fretboardSystem/FretboardSystem';
 import { Systems } from '../fretboardSystem/systems/systems';
+import { get as getNote, fromMidi, pitchClass, enharmonic } from '@tonaljs/note';
 
 export type Tuning = string[];
 
@@ -110,7 +111,8 @@ export const defaultOptions = {
   highlightRadius: DEFAULT_DIMENSIONS.unit * .5,
   highlightStroke: DEFAULT_COLORS.highlightStroke,
   highlightFill: DEFAULT_COLORS.highlightFill,
-  highlightBlendMode: DEFAULT_HIGHLIGHT_BLEND_MODE
+  highlightBlendMode: DEFAULT_HIGHLIGHT_BLEND_MODE,
+  preferSharp: true
 };
 
 export const defaultMuteStringsParams = {
@@ -162,6 +164,7 @@ export type Options = {
   highlightStroke: string;
   highlightFill: string;
   highlightBlendMode: string;
+  preferSharp: boolean;
 }
 
 type Rec = Record<string, string | number | boolean>;
@@ -311,6 +314,7 @@ export class Fretboard {
       .attr('class', 'fretboard-html-wrapper')
       .attr('style', 'position: relative')
       .append('svg')
+      .attr("class", "fretboard")
       .attr('viewBox', `0 0 ${totalWidth} ${totalHeight}`);
 
     this.wrapper = this.svg
@@ -385,8 +389,40 @@ export class Fretboard {
     return this;
   }
 
-  setDots(dots: Position[]): Fretboard {
-    this.dots = dots;
+  setDots(dots: Position[]): Fretboard
+  {
+    const tuning = this.options.tuning;
+
+    // If dot.note is not defined, then fill it in with the "pitchClass",
+    // which is what I want to display in the dot.
+    // Note: This might not be the original purpose of the note property.
+    // In fact, I think it should nodeName as used by tonaljs.
+    // I could pretty easily introduce another property in the Position
+    // structure, and I might do that later.
+    // (I am still thinking about whether I want an option to select
+    // between sharp and flat, for example D# or Eb.)
+    this.dots = dots.map(dot => {
+      if (!dot.note) {
+        // tuning uses a zero-based index starting at the lowest string.
+        // dot.string uses a one-based starting at the highest string.
+        const openString = tuning[6-dot.string];
+        const openMidi = getNote(openString).midi ;
+        const dotMidi = openMidi + dot.fret ;
+        const dotNoteName = fromMidi(dotMidi) ;
+
+        let pc = pitchClass(dotNoteName) ;
+
+        if ( ( this.options.preferSharp && pc.includes("b") ) ||  ( !this.options.preferSharp && pc.includes("#") ) )
+        {
+          pc = pitchClass(enharmonic(dotNoteName)) ;
+        }
+
+        const note = pc.replace('#', '♯').replace('b', '♭') ;
+        return { ...dot, note };
+      }
+      return dot;
+    });
+
     return this;
   }
 
