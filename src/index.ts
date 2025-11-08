@@ -1,4 +1,4 @@
-export { Fretboard, Position, Barre } from './fretboard/Fretboard';
+export { Fretboard, Position, Barre, defaultMuteStringsParams } from './fretboard/Fretboard';
 
 export {
   tetrachord,
