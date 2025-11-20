@@ -289,7 +289,7 @@ export class Fretboard {
     } = this.options;
 
     this.strings = generateStrings({ stringCount, height, stringWidth });
-    this.frets = generateFrets({ fretCount, scaleFrets });
+    this.frets = generateFrets({ fretCount, scaleFrets, width });
     const { totalWidth, totalHeight } = getDimensions(this.options);
 
     // This is breaking the programming style somewhat.
@@ -322,7 +322,7 @@ export class Fretboard {
       .attr('class', 'fretboard-wrapper')
       .attr(
         'transform',
-        `translate(${leftPadding}, ${topPadding}) scale(${width / totalWidth})`
+        `translate(${leftPadding}, ${topPadding})`
       );
   }
 
@@ -370,7 +370,7 @@ export class Fretboard {
 
     dotsNodes.append('circle')
       .attr('class', 'dot-circle')
-      .attr('cx', ({ string, fret }) => `${positions[string - 1][fret - dotOffset].x}%`)
+      .attr('cx', ({ string, fret }) => positions[string - 1][fret - dotOffset].x)
       .attr('cy', ({ string, fret }) => positions[string - 1][fret - dotOffset].y)
       .attr('r', dotSize * 0.5)
       .attr('stroke', dotStrokeColor)
@@ -379,7 +379,7 @@ export class Fretboard {
 
     dotsNodes.append('text')
       .attr('class', 'dot-text')
-      .attr('x', ({ string, fret }) => `${positions[string - 1][fret - dotOffset].x}%`)
+      .attr('x', ({ string, fret }) => positions[string - 1][fret - dotOffset].x)
       .attr('y', ({ string, fret }) => positions[string - 1][fret - dotOffset].y)
       .attr('text-anchor', 'middle')
       .attr('dominant-baseline', 'central')
@@ -582,12 +582,12 @@ export class Fretboard {
       .attr('y', ({ topLeft }) =>
         positions[topLeft.string - 1][topLeft.fret - dotOffset].y - dotSize * 0.5 - highlightPadding)
       .attr('x', ({ topLeft }) =>
-        `${positions[topLeft.string - 1][topLeft.fret - dotOffset].x - dotPercentSize / 2 - highlightPaddingPercentSize}%`)
+        positions[topLeft.string - 1][topLeft.fret - dotOffset].x - dotPercentSize / 2 - highlightPaddingPercentSize)
       .attr('rx', highlightRadius)
       .attr('width', ({ topLeft, topRight }) => {
         const from = positions[topLeft.string - 1][topLeft.fret].x;
         const to = positions[topRight.string - 1][topRight.fret].x;
-        return `${to - from + dotPercentSize + 2 * highlightPaddingPercentSize}%`;
+        return to - from + dotPercentSize + 2 * highlightPaddingPercentSize;
       })
       .attr('height', ({ topLeft, bottomLeft }) => {
         const from = positions[topLeft.string - 1][topLeft.fret].y;
@@ -713,7 +713,7 @@ export class Fretboard {
       .enter()
       .append('rect')
       .attr('y', ({ fret, stringTo }: Barre) => positions[stringTo - 1][fret - dotOffset].y - dotSize * .75)
-      .attr('x', ({ fret, stringFrom }: Barre) => `${positions[stringFrom - 1][fret - dotOffset].x}%`)
+      .attr('x', ({ fret, stringFrom }: Barre) => positions[stringFrom - 1][fret - dotOffset].x)
       .attr('rx', 7.5)
       .attr('width', barreWidth)
       .attr('height', ({ stringFrom, stringTo }: Barre) => strings[stringFrom - 1] - strings[stringTo - 1] + 1.5 * dotSize)
@@ -733,6 +733,7 @@ export class Fretboard {
 
     const {
       height,
+      width,
       font,
       nutColor,
       nutWidth,
@@ -761,7 +762,7 @@ export class Fretboard {
       .append('line')
       .attr('x1', 0)
       .attr('y1', d => d)
-      .attr('x2', '100%')
+      .attr('x2', width)
       .attr('y2', d => d)
       .attr('stroke', stringColor)
       .attr('stroke-width', (_d, i) => getStringThickness({ stringWidth, stringIndex: i }));
@@ -775,9 +776,9 @@ export class Fretboard {
       .data(frets)
       .enter()
       .append('line')
-      .attr('x1', d => `${d}%`)
+      .attr('x1', d => d)
       .attr('y1', 1)
-      .attr('x2', d => `${d}%`)
+      .attr('x2', d => d)
       .attr('y2', height - 1)
       .attr('stroke', (_d, i) => {
         switch (i) {
@@ -815,7 +816,7 @@ export class Fretboard {
         .data(this.markers)
         .enter()
         .append('circle')
-        .attr('cx', d => `${d}%`)
+        .attr('cx', d => d)
         .attr('cy', height / 2)
         .attr('r', r)
         .attr('fill', this.options.fretMarkerColor);
@@ -833,7 +834,7 @@ export class Fretboard {
           .data([0.30,0.70])
           .enter()
           .append('circle')
-          .attr('cx', `${this.doubleDotMarker}%`)
+          .attr('cx', this.doubleDotMarker)
           .attr('cy', d => d * height)
           .attr('r', r)
           .attr('fill', this.options.fretMarkerColor);

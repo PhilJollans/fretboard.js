@@ -41,24 +41,35 @@ export function generateStrings({
   return strings;
 }
 
-export function generateFrets({
-  scaleFrets,
-  fretCount
-}: {
-  scaleFrets: boolean;
-  fretCount: number;
-}): number[] {
-  const fretRatio = Math.pow(2, 1 / 12);
-  const frets = [0];
-
-  for (let i = 1; i <= fretCount; i++) {
-    let x = (100 / fretCount) * i;
-    if (scaleFrets) {
-      x = 100 - 100 / Math.pow(fretRatio, i);
-    }
-    frets.push(x);
+export function generateFrets(
+  {
+    scaleFrets,
+    fretCount,
+    width
+  }: {
+    scaleFrets: boolean;
+    fretCount: number;
+    width: number;
   }
-  return frets.map(x => x / frets[frets.length - 1] * 100);
+): number[] {
+  const frets: number[] = [0];
+
+  if (scaleFrets) {
+    const fretRatio = Math.pow(2, 1 / 12);
+    const lastRatio = ( 1 - 1 / Math.pow(fretRatio, fretCount) );
+
+    for (let i = 1; i <= fretCount; i++) {
+      const x = ( width / lastRatio ) * ( 1 - 1 / Math.pow(fretRatio, i) );
+      frets.push(x);
+    }
+  } else {
+    for (let i = 1; i <= fretCount; i++) {
+      const x = (width * i) / fretCount;
+      frets.push(x);
+    }
+  }
+
+  return frets;
 }
 
 const accidentalMap: { symbol: string; replacement: string }[] = [{
