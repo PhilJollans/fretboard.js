@@ -266,6 +266,7 @@ export class Fretboard {
   private handlers: Partial<Record<MouseOrTouchEventNames, (event: MouseEvent | TouchEvent) => void>> = {};
   private system: FretboardSystem;
   private dots: Position[] = [];
+  private barres: Barre[] = [];
 
   // When handling touch events, the TouchEnd event does not provide a position.
   // I think the safest way to handle this is reuse the position from the previous
@@ -350,6 +351,10 @@ export class Fretboard {
 
     wrapper.select('.dots').remove();
 
+    if (this.barres.length) {
+      this.renderBarres(this.barres);
+    }
+
     const dots = this.dots.filter(dot => dot.fret <= options.fretCount + dotOffset);
     if (!dots.length) {
       return this;
@@ -426,8 +431,14 @@ export class Fretboard {
     return this;
   }
 
+  setBarres(barres: Barre[]): Fretboard {
+    this.barres = barres;
+    return this;
+  }
+
   clear(): Fretboard {
     this.setDots([]);
+    this.setBarres([]);
     this.wrapper.select('.dots').remove();
     return this;
   }
@@ -512,8 +523,9 @@ export class Fretboard {
   renderChord(chord: string, barres?: Barre | Barre[]): Fretboard {
     const { positions, mutedStrings: strings } = parseChord(chord);
     this.setDots(positions);
-    if (barres) {
-      this.renderBarres([].concat(barres));
+    if ( barres )
+    {
+      this.setBarres([].concat(barres));
     }
     this.render();
     this.muteStrings({ strings });
