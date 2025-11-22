@@ -561,14 +561,12 @@ export class Fretboard {
 
   highlightAreas(...areas: [Position, Position][]): Fretboard {
     const { wrapper, options, positions } = this;
-    const { width, dotSize, highlightPadding, highlightFill, highlightStroke, highlightBlendMode, highlightRadius } = options;
+    const { dotSize, highlightPadding, highlightFill, highlightStroke, highlightBlendMode, highlightRadius } = options;
 
     const highlightGroup = wrapper
       .append('g')
       .attr('class', 'highlight-areas');
 
-    const dotPercentSize = dotSize / width * 100;
-    const highlightPaddingPercentSize = highlightPadding / width * 100;
     const dotOffset = this.getDotOffset();
 
     const bounds = areas.map(getBounds);
@@ -582,12 +580,12 @@ export class Fretboard {
       .attr('y', ({ topLeft }) =>
         positions[topLeft.string - 1][topLeft.fret - dotOffset].y - dotSize * 0.5 - highlightPadding)
       .attr('x', ({ topLeft }) =>
-        positions[topLeft.string - 1][topLeft.fret - dotOffset].x - dotPercentSize / 2 - highlightPaddingPercentSize)
+        positions[topLeft.string - 1][topLeft.fret - dotOffset].x - dotSize * 0.5 - highlightPadding)
       .attr('rx', highlightRadius)
       .attr('width', ({ topLeft, topRight }) => {
         const from = positions[topLeft.string - 1][topLeft.fret].x;
         const to = positions[topRight.string - 1][topRight.fret].x;
-        return to - from + dotPercentSize + 2 * highlightPaddingPercentSize;
+        return to - from + dotSize + 2 * highlightPadding;
       })
       .attr('height', ({ topLeft, bottomLeft }) => {
         const from = positions[topLeft.string - 1][topLeft.fret].y;
@@ -856,7 +854,7 @@ export class Fretboard {
         .enter()
         .append('text')
         .attr('text-anchor', 'middle')
-        .attr('x', (d, i) => totalWidth / 100 * (d - (d - frets[i]) / 2))
+        .attr('x', (d, i) => (d - (d - frets[i]) / 2))
         .attr('fill', (_d, i) => i === MIDDLE_FRET ? middleFretColor : fretNumbersColor)
         .text((_d, i) => `${i + 1 + dotOffset}`)
     }
