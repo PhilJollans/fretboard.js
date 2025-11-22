@@ -221,10 +221,15 @@ export const getPositionFromMouseCoords = ({
     return undefined ;
 
   let foundFret = -1;
-  const percentX = (Math.max(0, x) / bounds.width) * 100;
+
+  // Get width of SVG in coordinates
+  const svgWidth = frets[frets.length - 1]; // last fret coordinate
+
+  // Scale mouse X to SVG coordinates
+  const xScaled = (x / bounds.width) * svgWidth;
 
   for (let i = 0; i < frets.length; i++) {
-    if (percentX < frets[i]) {
+    if (xScaled < frets[i]) {
       foundFret = i;
       break;
     }
