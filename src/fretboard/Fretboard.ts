@@ -267,6 +267,7 @@ export class Fretboard {
   private system: FretboardSystem;
   private dots: Position[] = [];
   private barres: Barre[] = [];
+  private muted: number[] = [];
 
   // When handling touch events, the TouchEnd event does not provide a position.
   // I think the safest way to handle this is reuse the position from the previous
@@ -355,6 +356,10 @@ export class Fretboard {
       this.renderBarres(this.barres);
     }
 
+    if (this.muted.length) {
+      this.muteStrings({ strings: this.muted });
+    }
+
     const dots = this.dots.filter(dot => dot.fret <= options.fretCount + dotOffset);
     if (!dots.length) {
       return this;
@@ -436,9 +441,15 @@ export class Fretboard {
     return this;
   }
 
+  setMutedStrings(muted: number[]): Fretboard {
+    this.muted = muted;
+    return this;
+  }
+
   clear(): Fretboard {
     this.setDots([]);
     this.setBarres([]);
+    this.setMutedStrings([]);
     this.wrapper.select('.dots').remove();
     return this;
   }
@@ -521,14 +532,14 @@ export class Fretboard {
   }
 
   renderChord(chord: string, barres?: Barre | Barre[]): Fretboard {
-    const { positions, mutedStrings: strings } = parseChord(chord);
+    const { positions, mutedStrings } = parseChord(chord);
     this.setDots(positions);
+    this.setMutedStrings(mutedStrings) ;
     if ( barres )
     {
       this.setBarres([].concat(barres));
     }
     this.render();
-    this.muteStrings({ strings });
     return this;
   }
 
