@@ -41,6 +41,7 @@ export type Position = {
   string: number;
   fret: number;
   note?: string;
+  color?: string;
   disabled?: boolean;
   octave?: number;
   octaveInScale?: number;
@@ -385,7 +386,7 @@ export class Fretboard {
       .attr('r', dotSize * 0.5)
       .attr('stroke', dotStrokeColor)
       .attr('stroke-width', dotStrokeWidth)
-      .attr('fill', dotFill);
+      .attr('fill', ({ color }) => color || dotFill);
 
     dotsNodes.append('text')
       .attr('class', 'dot-text')
