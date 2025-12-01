@@ -113,7 +113,8 @@ export const defaultOptions = {
   highlightStroke: DEFAULT_COLORS.highlightStroke,
   highlightFill: DEFAULT_COLORS.highlightFill,
   highlightBlendMode: DEFAULT_HIGHLIGHT_BLEND_MODE,
-  preferSharp: true
+  preferSharp: true,
+  showDegree: false
 };
 
 export const defaultMuteStringsParams = {
@@ -166,6 +167,7 @@ export type Options = {
   highlightFill: string;
   highlightBlendMode: string;
   preferSharp: boolean;
+  showDegree: boolean;
 }
 
 type Rec = Record<string, string | number | boolean>;
@@ -396,6 +398,47 @@ export class Fretboard {
       .attr('dominant-baseline', 'central')
       .attr('font-size', dotTextSize)
       .text(dotText);
+
+    // Optional: show degree labels
+    if (this.options.showDegree) {
+      const degreeOffset = dotSize * 1.0;  // how far left of the dot to place degree number
+
+      const degreeGroup = dotsNodes.append('g')
+        .attr('class', 'dot-degree-group')
+        .attr('transform', ({ string, fret }) => {
+          const x = positions[string - 1][fret - dotOffset].x;
+          const y = positions[string - 1][fret - dotOffset].y;
+          return `translate(${x - degreeOffset}, ${y})`;
+        });
+
+      degreeGroup.append('rect')
+        .attr('x', -dotSize * 0.4)
+        .attr('y', -dotSize * 0.4)
+        .attr('width', dotSize * 0.8)
+        .attr('height', dotSize * 0.8)
+        .attr('rx', 3)
+        .attr('fill', 'white')
+        .attr('stroke', 'none');
+
+      degreeGroup.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'central')
+        .attr('font-size', dotTextSize )
+        .attr('fill', 'black')
+        .text(d => d.degree ?? '');
+
+
+
+      // dotsNodes.append('text')
+      //   .attr('class', 'dot-degree')
+      //   .attr('x', ({ string, fret }) => positions[string - 1][fret - dotOffset].x - degreeOffset)
+      //   .attr('y', ({ string, fret }) => positions[string - 1][fret - dotOffset].y)
+      //   .attr('text-anchor', 'end')
+      //   .attr('dominant-baseline', 'central')
+      //   .attr('font-size', dotTextSize)
+      //   .text(({ degree }) => degree ?? '');
+
+    }
 
     return this;
   }
