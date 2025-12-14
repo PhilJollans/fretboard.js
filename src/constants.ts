@@ -13,7 +13,9 @@ export const DEFAULT_COLORS = {
     barres: '#666',
     highlightStroke: 'transparent',
     highlightFill: 'dodgerblue',
-    markerDotColor: 'lightgrey'
+    markerDotColor: 'lightgrey',
+    degreeBackgroundColor: 'white',
+    degreeStrokeColor: '#111111'
 };
 
 export const DEFAULT_DIMENSIONS = {

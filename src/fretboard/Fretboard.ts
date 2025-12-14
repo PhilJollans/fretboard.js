@@ -114,14 +114,12 @@ export const defaultOptions = {
   highlightFill: DEFAULT_COLORS.highlightFill,
   highlightBlendMode: DEFAULT_HIGHLIGHT_BLEND_MODE,
   preferSharp: true,
-  showDegree: false
-};
-
-export const defaultMuteStringsParams = {
-  strings: [] as number[],
-  width: 15,
-  strokeWidth: 5,
-  stroke: DEFAULT_COLORS.mutedString
+  showDegree: false,
+  muteWidth: 15,
+  muteStrokeWidth: 5,
+  muteStrokeColor: DEFAULT_COLORS.mutedString,
+  degreeBackgroundColor: DEFAULT_COLORS.degreeBackgroundColor,
+  degreeStrokeColor: DEFAULT_COLORS.degreeStrokeColor
 };
 
 export type Options = {
@@ -168,6 +166,11 @@ export type Options = {
   highlightBlendMode: string;
   preferSharp: boolean;
   showDegree: boolean;
+  muteWidth: number;
+  muteStrokeWidth: number;
+  muteStrokeColor: string;
+  degreeBackgroundColor: string;
+  degreeStrokeColor: string;
 }
 
 type Rec = Record<string, string | number | boolean>;
@@ -346,7 +349,9 @@ export class Fretboard {
       dotSize,
       dotText,
       dotTextSize,
-      disabledOpacity
+      disabledOpacity,
+      degreeBackgroundColor,
+      degreeStrokeColor
     } = this.options;
 
     const dotOffset = this.getDotOffset();
@@ -417,27 +422,15 @@ export class Fretboard {
         .attr('width', dotSize * 0.8)
         .attr('height', dotSize * 0.8)
         .attr('rx', 3)
-        .attr('fill', 'white')
+        .attr('fill', degreeBackgroundColor)
         .attr('stroke', 'none');
 
       degreeGroup.append('text')
         .attr('text-anchor', 'middle')
         .attr('dominant-baseline', 'central')
         .attr('font-size', dotTextSize )
-        .attr('fill', 'black')
+        .attr('fill', degreeStrokeColor)
         .text(d => d.degree ?? '');
-
-
-
-      // dotsNodes.append('text')
-      //   .attr('class', 'dot-degree')
-      //   .attr('x', ({ string, fret }) => positions[string - 1][fret - dotOffset].x - degreeOffset)
-      //   .attr('y', ({ string, fret }) => positions[string - 1][fret - dotOffset].y)
-      //   .attr('text-anchor', 'end')
-      //   .attr('dominant-baseline', 'central')
-      //   .attr('font-size', dotTextSize)
-      //   .text(({ degree }) => degree ?? '');
-
     }
 
     return this;
@@ -546,15 +539,15 @@ export class Fretboard {
 
     const {
       strings,
-      stroke,
-      strokeWidth,
-      width
-    } = { ...defaultMuteStringsParams, ...params };
+      muteStrokeColor,
+      muteStrokeWidth,
+      muteWidth
+    } = { ...this.options, ...params };
 
     wrapper
       .append('g')
       .attr('class', 'muted-strings')
-      .attr('transform', `translate(${-width / 2}, ${-width / 2})`)
+      .attr('transform', `translate(${-muteWidth / 2}, ${-muteWidth / 2})`)
       .selectAll('path')
       .data(strings)
       .enter()
@@ -563,13 +556,13 @@ export class Fretboard {
         const { y } = positions[d - 1][0];
         return [
           `M 0 ${y}`,
-          `L ${width} ${y + width}`,
-          `M ${width} ${y}`,
-          `L 0 ${y + width}`
+          `L ${muteWidth} ${y + muteWidth}`,
+          `M ${muteWidth} ${y}`,
+          `L 0 ${y + muteWidth}`
         ].join(' ');
       })
-      .attr('stroke', stroke)
-      .attr('stroke-width', strokeWidth)
+      .attr('stroke', muteStrokeColor)
+      .attr('stroke-width', muteStrokeWidth)
       .attr('class', 'muted-string');
 
     return this;
@@ -816,6 +809,46 @@ export class Fretboard {
 
     const { totalWidth } = getDimensions(this.options);
 
+    if (this.options.showFretMarkers)
+    {
+      const r = 0.35 * height / ( this.options.stringCount - 1 ) ;
+
+      // Add single dots (3rd, 5th, 7th, 9th frets)
+      const singleDotGroup = wrapper
+        .append('g')
+        .attr('class', 'single-dot-markers');
+
+      // Single dots
+      singleDotGroup
+        .selectAll('circle')
+        .data(this.markers)
+        .enter()
+        .append('circle')
+        .attr('cx', d => d)
+        .attr('cy', height / 2)
+        .attr('r', r)
+        .attr('fill', this.options.fretMarkerColor);
+
+      // Double dots (12th fret)
+      if ( this.doubleDotMarker )
+      {
+        // Add single dots (3rd, 5th, 7th, 9th frets)
+        const doubleDotGroup = wrapper
+          .append('g')
+          .attr('class', 'double-dot-markers');
+
+        doubleDotGroup
+          .selectAll('.circle')
+          .data([0.30,0.70])
+          .enter()
+          .append('circle')
+          .attr('cx', this.doubleDotMarker)
+          .attr('cy', d => d * height)
+          .attr('r', r)
+          .attr('fill', this.options.fretMarkerColor);
+      }
+    }
+
     const stringGroup = wrapper
       .append('g')
       .attr('class', 'strings');
@@ -865,46 +898,6 @@ export class Fretboard {
             return fretWidth;
         }
       });
-
-    if (this.options.showFretMarkers)
-    {
-      const r = 0.35 * height / ( this.options.stringCount - 1 ) ;
-
-      // Add single dots (3rd, 5th, 7th, 9th frets)
-      const singleDotGroup = wrapper
-        .append('g')
-        .attr('class', 'single-dot-markers');
-
-      // Single dots
-      singleDotGroup
-        .selectAll('circle')
-        .data(this.markers)
-        .enter()
-        .append('circle')
-        .attr('cx', d => d)
-        .attr('cy', height / 2)
-        .attr('r', r)
-        .attr('fill', this.options.fretMarkerColor);
-
-      // Double dots (12th fret)
-      if ( this.doubleDotMarker )
-      {
-        // Add single dots (3rd, 5th, 7th, 9th frets)
-        const doubleDotGroup = wrapper
-          .append('g')
-          .attr('class', 'double-dot-markers');
-
-        doubleDotGroup
-          .selectAll('.circle')
-          .data([0.30,0.70])
-          .enter()
-          .append('circle')
-          .attr('cx', this.doubleDotMarker)
-          .attr('cy', d => d * height)
-          .attr('r', r)
-          .attr('fill', this.options.fretMarkerColor);
-      }
-    }
 
     if (showFretNumbers) {
       const fretNumbersGroup = wrapper
